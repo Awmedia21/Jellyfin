@@ -7,8 +7,9 @@ JELLYFIN_API_KEY = os.environ.get("JELLYFIN_API_KEY")
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 MESSAGE_ID = os.environ.get("DISCORD_MESSAGE_ID")
 
+# Jellyfin standard authentication header
 headers = {
-    "X-Emby-Token": JELLYFIN_API_KEY,
+    "Authorization": f"MediaBrowser Token=\"{JELLYFIN_API_KEY}\"",
     "Content-Type": "application/json"
 }
 
