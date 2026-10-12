@@ -5,7 +5,8 @@ from datetime import datetime
 JELLYFIN_URL = os.environ.get("JELLYFIN_URL").rstrip("/")
 JELLYFIN_API_KEY = os.environ.get("JELLYFIN_API_KEY")
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
-MESSAGE_ID = os.environ.get("DISCORD_MESSAGE_ID")
+
+MESSAGE_ID_FILE = "message_id.txt"
 
 headers = {
     "Authorization": f'MediaBrowser Token="{JELLYFIN_API_KEY}"',
@@ -60,9 +61,27 @@ payload = {
     ]
 }
 
-# 4. Edit Existing Discord Message via PATCH
-edit_url = f"{WEBHOOK_URL}/messages/{MESSAGE_ID}"
-res = requests.patch(edit_url, json=payload)
-res.raise_for_status()
+# 4. Smart Update: Edit existing message or post a new one
+message_id = None
+if os.path.exists(MESSAGE_ID_FILE):
+    with open(MESSAGE_ID_FILE, "r") as f:
+        message_id = f.read().strip()
 
-print("Successfully updated existing Discord library stats banner!")
+success = False
+if message_id:
+    edit_url = f"{WEBHOOK_URL}/messages/{message_id}"
+    res = requests.patch(edit_url, json=payload)
+    if res.status_code == 200:
+        success = True
+        print("Successfully updated existing Discord library stats message.")
+
+if not success:
+    # Post fresh message and wait for response to capture its ID
+    post_url = f"{WEBHOOK_URL}?wait=true"
+    res = requests.post(post_url, json=payload)
+    res.raise_for_status()
+    new_msg = res.json()
+    message_id = new_msg["id"]
+    with open(MESSAGE_ID_FILE, "w") as f:
+        f.write(str(message_id))
+    print("Posted new Discord library stats message and saved ID.")
