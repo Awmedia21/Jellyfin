@@ -2,20 +2,23 @@ name: Update Jellyfin Library Stats
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 * * * *' # Runs every hour
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  contents: write
 
 jobs:
   update-stats:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
       - name: Install Dependencies
         run: pip install requests
@@ -25,5 +28,12 @@ jobs:
           JELLYFIN_URL: ${{ secrets.JELLYFIN_URL }}
           JELLYFIN_API_KEY: ${{ secrets.JELLYFIN_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          DISCORD_MESSAGE_ID: ${{ secrets.DISCORD_MESSAGE_ID }}
         run: python update_stats.py
+
+      - name: Commit Message ID
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add message_id.txt || true
+          git commit -m "Auto-update Discord message ID [skip ci]" || exit 0
+          git push
