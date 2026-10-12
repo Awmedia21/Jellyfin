@@ -5,11 +5,9 @@ from datetime import datetime
 JELLYFIN_URL = os.environ.get("JELLYFIN_URL").rstrip("/")
 JELLYFIN_API_KEY = os.environ.get("JELLYFIN_API_KEY")
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
-MESSAGE_ID = os.environ.get("DISCORD_MESSAGE_ID")
 
-# Jellyfin standard authentication header
 headers = {
-    "Authorization": f"MediaBrowser Token=\"{JELLYFIN_API_KEY}\"",
+    "Authorization": f'MediaBrowser Token="{JELLYFIN_API_KEY}"',
     "Content-Type": "application/json"
 }
 
@@ -61,9 +59,8 @@ payload = {
     ]
 }
 
-# 4. Edit Existing Discord Message via PATCH
-edit_url = f"{WEBHOOK_URL}/messages/{MESSAGE_ID}"
-res = requests.patch(edit_url, json=payload)
+# 4. Send fresh message via Webhook
+res = requests.post(WEBHOOK_URL, json=payload)
 res.raise_for_status()
 
-print("Successfully updated Discord library stats banner!")
+print("Successfully posted fresh Discord library stats dashboard!")
