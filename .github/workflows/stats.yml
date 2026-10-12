@@ -1,0 +1,29 @@
+name: Update Jellyfin Library Stats
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Stats Script
+        env:
+          JELLYFIN_URL: ${{ secrets.JELLYFIN_URL }}
+          JELLYFIN_API_KEY: ${{ secrets.JELLYFIN_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE_ID: ${{ secrets.DISCORD_MESSAGE_ID }}
+        run: python update_stats.py
